@@ -4,6 +4,13 @@ const jwt = require("jsonwebtoken");
 const config = require("../config/config");
 const _ = require("lodash");
 
+// const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+// Store OTP in temporary storage
+
+// Send OTP via email
+
+// transporter.sendMail(mailOptions);
 exports.register = async (req, res) => {
   await User.findOne({ email: req.body.email, delete: false }).then(
     async (user) => {
