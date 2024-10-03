@@ -52,6 +52,7 @@ exports.login = async (req, res) => {
         await user.updateOne({
           $set: { status: req.body.status },
         });
+
         const payload = {
           id: user._id,
           fullName: user.fullName,
@@ -59,16 +60,15 @@ exports.login = async (req, res) => {
           password: user.password,
           avatar: user.avatar,
         };
-        jwt.sign(payload, config.secretOrKey, { expiresIn: 3600 }, (token) => {
-          res.json({
-            success: "true",
-            message: "Success",
-            token: "User" + token,
-            id: user.id,
-            fullName: user.fullName,
-            email: user.email,
-            file: user.file,
-          });
+        const token = jwt.sign(payload, config.secretOrKey, { expiresIn: 3600 });
+        res.json({
+          success: "true",
+          message: "Success",
+          token: token,
+          id: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          file: user.file,
         });
       });
     },
@@ -78,7 +78,7 @@ exports.logout = async (req, res) => {
   try {
     // Find the user by their email (You might use the token to identify the user in some systems)
     const user = await User.findOne({ email: req.body.email });
-    
+
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -91,7 +91,7 @@ exports.logout = async (req, res) => {
       success: true,
       message: "Logout successful.",
     });
-    
+
   } catch (error) {
     console.error("Error during logout: ", error);
     res.status(500).json({ message: "Server error, please try again later." });
@@ -134,11 +134,24 @@ exports.getAUser = async (req, res) => {
 };
 
 exports.changePassword = async (req, res) => {
+  const { email, currentPassword, newPassword } = req.body;
   try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    // Compare the current password with the stored hashed password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+    
     const salt = await bcrypt.genSalt(10);
-    newPassword = await bcrypt.hash(req.body.password, salt);
-    await User.findone({ email: req.body.email }).updateOne({
-      password: newPassword,
+    const password = await bcrypt.hash(newPassword, salt);
+    await User.findOne({ email }).updateOne({
+      password: password,
     });
     res.status(200).json({ message: "Success" });
   } catch (error) {
@@ -151,7 +164,7 @@ exports.changeEmail = async (req, res) => {
     await User.findOne({ email: req.body.email }).updateOne({
       email: req.body.changeEmail,
     });
-    res.status(200).json({ message: "Success" });
+    res.status(200).json({ message: "Email was updated successfully" });
   } catch (error) {
     console.log(error);
   }
@@ -170,7 +183,8 @@ exports.changePhoneNumber = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    await User.findone({ email: req.body.email }).updateOne({
+    console.log(req.body);
+    await User.findOneAndUpdate({ email: req.body.email }, {
       file: req.body.file,
       fullName: req.body.fullName,
       address: req.body.address,
