@@ -16,7 +16,7 @@ const { BN } = require('@coral-xyz/anchor')
 // raiseContract.setWalletKeypair(backendWalletKeypair);
 
 exports.createCampaign = async (req, res) => {
-  try{
+  try {
     const newCampaign = new Campaign({
       title: req.body.title,
       file: req.body.file,
@@ -38,7 +38,7 @@ exports.createCampaign = async (req, res) => {
     console.log("haha", newCampaign);
     await newCampaign.save();
 
-    res.status(200).json({message: "Success"})
+    res.status(200).json({ message: "Success" })
 
   } catch (error) {
     console.error('Error creating campaign:', error);

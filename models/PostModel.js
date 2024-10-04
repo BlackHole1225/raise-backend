@@ -19,6 +19,10 @@ const PostSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Campaign",
     },
+    categoryId: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+    },
     file: {
       type: Schema.Types.ObjectId,
       ref: "File",
