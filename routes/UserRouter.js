@@ -18,7 +18,7 @@ router
   //getUser information
   .get("/user/", UserCtr.getAUser)
   //update profile
-  .post("/updateUserProfile", requireAuth, UserCtr.updateProfile)
+  .post("/updateUserProfile", UserCtr.updateProfile)
   //change Password
   .post("/changePassword", requireAuth, UserCtr.changePassword)
   //change Email

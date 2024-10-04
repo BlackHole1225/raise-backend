@@ -16,14 +16,33 @@ exports.actionPost = async (req, res) => {
 };
 exports.newComment = async (req, res) => {
   try {
-    // const nPost = new Post(req.body);
-    // await nPost.save();
-    // res.status(201).json({
-    //   message: "Create a new post successfully.",
-    //   result: nPost,
-    // });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    const {  accessTime, votes, reporterPhoto, reporterName, parentId, description } = req.body;
+
+    const post = await Post.findById(req.params._id);
+    if (!post) {
+      return res.status(404).json({ message: 'post not found' });
+    }
+
+    // Create the new comment
+    const newComment = {
+      accessTime,
+      votes,
+      reporterPhoto,
+      reporterName,
+      parentId,
+      description,
+    };
+
+    // Add the new comment to the post's comments array
+    post.comments.push(newComment);
+
+    // Save the updated post  with the new comment
+    await post.save();
+
+    res.json({ message: 'Comment added', blog });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 exports.getPosts = async (req, res) => {
