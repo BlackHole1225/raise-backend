@@ -13,7 +13,6 @@ const jwtLogin = new JwtStrategy(opts, async (payload, done) => {
   try {
     // Use async/await instead of the callback pattern
     const user = await User.findById(payload.id);
-
     if (user) {
       return done(null, user);  // Successfully found the user
     } else {

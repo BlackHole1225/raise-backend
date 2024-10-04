@@ -1,5 +1,5 @@
 const { model } = require("mongoose");
-const Post = require("../models/PostModel");
+const { Post, Comment } = require("../models/PostModel");
 const { makeTree } = require("../utils/makeTree");
 
 exports.actionPost = async (req, res) => {
@@ -16,9 +16,9 @@ exports.actionPost = async (req, res) => {
 };
 exports.newComment = async (req, res) => {
   try {
-    const {  accessTime, votes, reporterPhoto, reporterName, parentId, description } = req.body;
+    const { accessTime, votes, reporterPhoto, reporterName, parentId, description } = req.body;
 
-    const post = await Post.findById(req.params._id);
+    const post = await Post.findById(req.params.id);
     if (!post) {
       return res.status(404).json({ message: 'post not found' });
     }
@@ -37,12 +37,94 @@ exports.newComment = async (req, res) => {
     post.comments.push(newComment);
 
     // Save the updated post  with the new comment
-    await post.save();
+    const result = await post.save();
 
-    res.json({ message: 'Comment added', blog });
+    const savedComment = result.comments[result.comments.length - 1];
+
+    // Send the saved comment in the response
+    return res.json({ message: "Comment added successfully", comment: savedComment });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+exports.votePost = async (req, res) => {
+
+  try {
+    const { postId } = req.params;
+    const { _id } = req.user;
+    // Find the blog by its ID
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "post not found" });
+    }
+    if (req.body.isVote) {
+      if (post.voters.includes(_id)) {
+        return res.status(400).json({ message: "You have already voted on this post" });
+      }
+
+      // Add the user to the list of voters and increase the vote count
+      post.voters.push(_id);
+      post.votes += 1;
+
+    } else {
+      if (!post.voters.includes(_id)) {
+        return res.status(400).json({ message: "You didn't voted on this post yet" });
+      }
+      post.voters.pull(_id);
+      post.votes -= 1;
+    }
+    // Check if the user has already voted
+
+    // Save the updated post
+    await post.save();
+
+    return res.status(200).json({ message: "Vote successful", votes: post.votes });
+  } catch (error) {
+    console.error("Error voting on post:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+exports.voteOnComment = async (req, res) => {
+
+  try {
+    const { commentId } = req.params;
+    console.log(req.params);
+    const { _id } = req.user;
+    // Find the blog by its ID
+    const post = await Post.findById(req.body.postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+    if (req.body.isVote) {
+      if (comment.voters.includes(_id)) {
+        return res.status(400).json({ message: "You have already voted on this comment" });
+      }
+
+      // Add the user to the list of voters and increase the vote count
+      comment.voters.push(_id);
+      comment.votes += 1;
+
+    } else {
+      if (!comment.voters.includes(_id)) {
+        return res.status(400).json({ message: "You didn't voted on this comment yet" });
+      }
+      comment.voters.pull(_id);
+      comment.votes -= 1;
+    }
+    // Check if the user has already voted
+
+    // Save the updated comment
+    await post.save();
+
+    return res.status(200).json({ message: "Vote successful", comment });
+  } catch (error) {
+    console.error("Error voting on comment:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 exports.getPosts = async (req, res) => {
@@ -60,13 +142,14 @@ exports.getPosts = async (req, res) => {
 };
 exports.getPost = async (req, res) => {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
+    console.log(id);
     // let query = {};
     // if (view !== "all") query.delete = false;
     // const Posts = await Post.find(query).sort({ order: 1 });
-    const Post = await Post.find({ id }).sort({ order: 1 });
+    const post = await Post.findById(id);
     // const result = makeTree(Posts);
-    res.status(200).json({ Post });
+    res.status(200).json({ post });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -80,21 +163,5 @@ exports.deletePost = async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
-  }
-};
-
-exports.votePost = async (req, res) => {
-  try {
-    const user = req.body.userId;
-    console.log(user);
-    // await PostModel.update({ _id: id }, { $push: { vote: user } });
-    const post = await PostModel.findByIdAndUpdate(req.body.postId, {
-      $set: {
-        "vote.$.user": user,
-      },
-    });
-    res.status(202).send({ message: "Vote successfully.", post: post });
-  } catch (err) {
-    res.status(500).send({ message: "error" });
   }
 };
