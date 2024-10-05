@@ -18,11 +18,9 @@ const UserSchema = new Schema(
       type: String,
     },
     //Avatar's ID
-    avatar: [
-      {
-        type: String,
-      },
-    ],
+    avatar:{
+      type: String,
+    },
     //Phone number
     phoneNumber: {
       type: Number,

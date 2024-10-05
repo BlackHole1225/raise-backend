@@ -177,12 +177,13 @@ exports.changePhoneNumber = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     console.log(req.body);
-    await User.findOneAndUpdate({ email: req.body.email }, {
+    const user= await User.findOneAndUpdate({ email: req.body.email }, {
       file: req.body.file,
       fullName: req.body.fullName,
       address: req.body.address,
+      avatar:req.body.avatar
     });
-    res.status(200).json({ message: "Success" });
+    res.status(200).json({ message: "Success", user });
   } catch (error) {
     console.log(error);
   }

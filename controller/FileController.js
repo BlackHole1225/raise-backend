@@ -121,10 +121,7 @@ exports.downloadFile = async function (req, res, next) {
 
 
 exports.uploadFiles = function (req, res, next) {
-  // console.log("Dream = ",req.files);
-
-  let files = req.body.files;
-  console.log(files);
+  let files = req.files;
   if (files?.message) {
     files = files.message;
     if (typeof files === "object" && !files.length) files = [files];

@@ -16,7 +16,7 @@ router
   //tokenlogin
   .get("/tokenlogin", requireAuth, UserCtr.tokenlogin)
   //getUser information
-  .get("/user/", UserCtr.getAUser)
+  .post("/user/",requireAuth, UserCtr.getAUser)
   //update profile
   .post("/updateUserProfile", UserCtr.updateProfile)
   //change Password
