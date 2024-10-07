@@ -40,7 +40,7 @@ exports.login = async (req, res) => {
       }
       bcrypt.compare(req.body.password, user.password).then(async (matched) => {
         if (!matched) {
-          return res.json({ message: "Password incorrect" });
+          return res.status(400).json({ message: "Password incorrect" });
         }
         await user.updateOne({
           $set: { status: req.body.status },
@@ -53,7 +53,7 @@ exports.login = async (req, res) => {
           password: user.password,
           avatar: user.avatar,
         };
-        const token = jwt.sign(payload, config.secretOrKey, { expiresIn: 3600 });
+        const token = jwt.sign(payload, config.secretOrKey, { expiresIn: 36000 });
         res.json({
           success: "true",
           message: "Success",

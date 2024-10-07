@@ -57,10 +57,10 @@ exports.move_to_upload_public = function move_to_upload(fileObj, mFile, callback
   });
 }
 
-exports.get_uploaded_attachment = function get_uploaded_attachment(fid, isPublic, callback) {
+exports.get_uploaded_attachment = function get_uploaded_attachment(fid, isPublic,ext, callback) {
   const uploadPath = !isPublic ? config.upload_attachment : config.upload_public;
   let attachmentPath = path.join(config.upload, uploadPath);
-  fs.readFile(attachmentPath + '/' + fid, (err, content) => {
+  fs.readFile(attachmentPath + '/' + fid+"."+ext,(err, content) => {
     callback(err, content);
   })
 }

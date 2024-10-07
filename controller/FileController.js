@@ -10,71 +10,10 @@ const lang = require("../utils/_lang/lang");
 const path = require("path");
 const config = require("../config/file");
 
-// exports.downloadFile = function (req, res, next) {
-//   const id = req.params.id;
-//   const isPublic = !!req.query.isPublic;
 
-//   File.findOne({ _id: id }).exec(function (err, file) {
-//     if (err || !file) {
-//       res.status(400).json({ error: lang("fail_fetchall") });
-//       return next(err);
-//     }
-
-//     upload.get_uploaded_attachment(file._id, isPublic, (err, data) => {
-//       if (err) {
-//         return res.status(400).send({
-//           error: lang("fail_fetchall"),
-//         });
-//       } else {
-//         res.writeHead(200, {
-//           "Content-Type": file.mime,
-//           "Content-Encoding": "utf8",
-//           "Cache-Control": "private, no-transform, no-store, must-revalidate",
-//           "Content-Disposition": contentDisposition(file.name),
-//           Expires: 0,
-//           "Content-Transfer-Encoding": "binary",
-//           "Content-Length": file.filesize || 0,
-//           // 'Cache-Control': 'private, no-transform, no-store, must-revalidate'
-//         });
-
-//         res.end(data, "binary");
-//       }
-//     });
-//   });
-// };
-
-// exports.downloadFile = function (req, res, next) {
-//   const id = req.params.id;
-//   const isPublic = !!req.query.isPublic;
-
-//   File.findOne({ _id: id }).exec(function (err, file) {
-//     if (err || !file) {
-//       console.error("Error fetching file:", err);
-//       return res.status(400).json({ error: lang("fail_fetchall") });
-//     }
-
-//     upload.get_uploaded_attachment(file._id, isPublic, (err, data) => {
-//       if (err) {
-//         console.error("Error fetching attachment:", err);
-//         return res.status(400).send({ error: lang("fail_fetchall") });
-//       } else {
-//         res.writeHead(200, {
-//           "Content-Type": file.mime,
-//           "Cache-Control": "private, no-transform, no-store, must-revalidate",
-//           "Content-Disposition": contentDisposition(file.name),
-//           "Content-Length": file.filesize || 0,
-//           "Content-Transfer-Encoding": "binary",
-//         });
-
-//         res.end(data, "binary");
-//       }
-//     });
-//   });
-// };
-
-const getUploadedAttachment = (fileId, isPublic) => {
+const getUploadedAttachment = (fileId, isPublic, ext) => {
   return new Promise((resolve, reject) => {
-    upload.get_uploaded_attachment(fileId, isPublic, (err, data) => {
+    upload.get_uploaded_attachment(fileId, isPublic, ext, (err, data) => {
       if (err) {
         return reject(err);
       }
@@ -87,7 +26,7 @@ const getUploadedAttachment = (fileId, isPublic) => {
 exports.downloadFile = async function (req, res, next) {
   const id = req.params.id;
   const isPublic = !!req.query.isPublic;
-
+  console.log(isPublic);
   try {
     // Find the file in the database
     const file = await File.findOne({ _id: id }).exec();
@@ -99,7 +38,7 @@ exports.downloadFile = async function (req, res, next) {
     }
 
     // Fetch the uploaded attachment
-    const data = await getUploadedAttachment(file._id, isPublic);
+    const data = await getUploadedAttachment(file._id, isPublic, file.name.split('.').pop());
 
     // Send the file as a response
     res.writeHead(200, {

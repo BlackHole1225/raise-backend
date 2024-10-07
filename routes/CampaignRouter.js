@@ -7,6 +7,8 @@ router
   .post("/create", CampaignController.createCampaign)
   //Get all campaign
   .get("/", CampaignController.getAllCampaign)
+  //Get all campaign
+  .get("/category", CampaignController.getCampaignCategory)
   //Edit campaign
   .put("/edit/", CampaignController.editCampaign)
   //End campaign

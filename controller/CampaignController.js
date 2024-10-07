@@ -195,7 +195,14 @@ exports.getAllCampaign = async (req, res) => {
     console.log(error);
   }
 };
-
+exports.getCampaignCategory = async (req, res) => {
+  try {
+    const campaign = await Campaign.find({ delete: "false" },"_id title");
+    res.status(200).json({ message: "Success", campaign: campaign });
+  } catch (error) {
+    console.log(error);
+  }
+};
 exports.getACampaign = async (req, res) => {
   try {
     const campaign = await Campaign.find({ delete: "false", _id: req.params.id });
