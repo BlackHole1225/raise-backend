@@ -13,6 +13,8 @@ router
   .get("/all", PostController.getPosts)
   //Get All Post
   .get("/get/:id", PostController.getPost)
+  //update Post
+  .put("/update/:id", PostController.updatePost)
   //Vote Post
   .put("/:postId/vote", requireAuth, PostController.votePost)
   //Vote Comment

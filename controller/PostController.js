@@ -133,7 +133,7 @@ exports.getPosts = async (req, res) => {
     // let query = {};
     // if (view !== "all") query.delete = false;
     // const Posts = await Post.find(query).sort({ order: 1 });
-    const Posts = await Post.find().sort({ order: 1 });
+    const Posts = await Post.find({ delete: false }).sort({ _id: -1 });
     // const result = makeTree(Posts);
     res.status(200).json({ Posts });
   } catch (err) {
@@ -157,9 +157,20 @@ exports.getPost = async (req, res) => {
 exports.deletePost = async (req, res) => {
   try {
     const { id } = req.params;
-    await Post.update({ _id: id }, { del: true });
+    await Post.updateOne({ _id: id }, { delete: true });
     res.status(203).json({
       message: `Post with id: ${id} deleted successfully.`,
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+exports.updatePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Post.updateOne({ _id: id }, { ...req.body });
+    res.status(203).json({
+      message: `Post was updated successfully.`,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
