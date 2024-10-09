@@ -14,7 +14,7 @@ router
   //End campaign
   .delete("/delete/", CampaignController.endCampaign)
   //Delete update
-  .delete("/update/", CampaignController.deleteUpdate)
+  .delete("/update/:campaignId/:contentId", CampaignController.deleteUpdate)
   //Make update
   .post("/update/", CampaignController.updateCampaign)
   .get("/:id",CampaignController.getACampaign)

@@ -135,33 +135,46 @@ exports.editCampaign = async (req, res) => {
     console.log(error);
   }
 };
-
 exports.updateCampaign = async (req, res) => {
   try {
+    // Validate the required data
+    if (!req.body.campaignId || !req.body.text) {
+      return res.status(400).json({ message: "Campaign ID and text are required." });
+    }
+
     const newContent = {
-      _id: new mongoose.Types.ObjectId(),
+      _id: new mongoose.Types.ObjectId(),  // Creating a new ObjectId for the content
       text: req.body.text,
       delete: false,
     };
-    await Campaign.update(
-      { _id: mongoose.Types.ObjectId(req.body.campaignId) },
+    console.log(newContent);
 
-      {
-        $push: { content: newContent },
-      },
+    // Updating the campaign with new content using updateOne
+    const updateResult = await Campaign.updateOne(
+      { _id: req.body.campaignId },      // Matching the campaign by its ID
+      { $push: { content: newContent } } // Pushing new content into the content array
     );
-    res.status(200).json({ message: "Create update Successfully!" });
+
+    // Check if the update actually modified a document
+    if (updateResult.nModified === 0) {
+      return res.status(404).json({ message: "Campaign not found." });
+    }
+
+    res.status(200).json({ message: "Create update successfully!", newContent });
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    res.status(500).json({ message: "An error occurred while updating the campaign." });
   }
 };
 
+
 exports.deleteUpdate = async (req, res) => {
+  console.log(req.params);
   try {
     await Campaign.findOneAndUpdate(
       {
-        _id: mongoose.Types.ObjectId(req.body.campaignId),
-        "content._id": req.body.contentId,
+        _id: req.params.campaignId,
+        "content._id": req.params.contentId,
       },
       {
         delete: true,
