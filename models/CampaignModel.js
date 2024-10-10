@@ -11,6 +11,7 @@ const CampaignSchema = new Schema(
       {
         text: String,
         delete: Boolean,
+        date: { type: Date, default: Date.now }
       },
     ],
     countryId: {

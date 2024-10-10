@@ -146,6 +146,7 @@ exports.updateCampaign = async (req, res) => {
       _id: new mongoose.Types.ObjectId(),  // Creating a new ObjectId for the content
       text: req.body.text,
       delete: false,
+      date: new Date(),
     };
     console.log(newContent);
 
@@ -169,22 +170,30 @@ exports.updateCampaign = async (req, res) => {
 
 
 exports.deleteUpdate = async (req, res) => {
-  console.log(req.params);
   try {
-    await Campaign.findOneAndUpdate(
-      {
-        _id: req.params.campaignId,
-        "content._id": req.params.contentId,
-      },
-      {
-        delete: true,
-      },
+    // Validate the required data
+    if (!req.params.campaignId || !req.params.contentId) {
+      return res.status(400).json({ message: "Campaign ID and content ID are required." });
+    }
+
+    // Deleting the update by pulling the content with the matching _id from the content array
+    const updateResult = await Campaign.updateOne(
+      { _id: req.params.campaignId }, // Find the campaign by campaignId
+      { $pull: { content: { _id: req.params.contentId } } } // Pull out the content by contentId
     );
-    res.status(200).json({ message: "Deleted successfully." });
+
+    // Check if any document was modified (updateResult.nModified should be greater than 0)
+    if (updateResult.nModified === 0) {
+      return res.status(404).json({ message: "Campaign or content not found." });
+    }
+
+    res.status(200).json({ message: "Update deleted successfully!" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    res.status(500).json({ message: "An error occurred while deleting the update." });
   }
 };
+
 
 exports.endCampaign = async (req, res) => {
   try {
@@ -210,7 +219,7 @@ exports.getAllCampaign = async (req, res) => {
 };
 exports.getCampaignCategory = async (req, res) => {
   try {
-    const campaign = await Campaign.find({ delete: "false" },"_id title");
+    const campaign = await Campaign.find({ delete: "false" }, "_id title");
     res.status(200).json({ message: "Success", campaign: campaign });
   } catch (error) {
     console.log(error);
@@ -218,10 +227,42 @@ exports.getCampaignCategory = async (req, res) => {
 };
 exports.getACampaign = async (req, res) => {
   try {
+    let formattedContent = {};
+
+    // Find campaign by ID
     const campaign = await Campaign.find({ delete: "false", _id: req.params.id });
-    res.status(200).json({ message: "Success", data: campaign });
+    console.log(campaign);
+    // Check if campaign exists
+    if (campaign.length > 0) {
+      // Check if the campaign has content to format
+      if (campaign[0].content) {
+        formattedContent = campaign[0].content.map(item => ({
+          text: item.text,
+          delete: item.delete,
+          _id: item._id,
+          formattedDate: new Date(item.date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          }),
+        }));
+      }
+
+      // Send the response with the formatted content
+      res.status(200).json({
+        message: "Success",
+        data: {
+          campaign: campaign[0], // Send the first found campaign
+          formattedContent, // Send the formatted content
+        },
+      });
+    } else {
+      // If no campaign found
+      res.status(404).json({ message: "Campaign not found" });
+    }
   } catch (error) {
-    // console.log(error);
-    res.status(500).json({ message: req.params });
+    console.log(error);
+    res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
+
