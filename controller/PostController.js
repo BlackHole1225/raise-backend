@@ -4,7 +4,8 @@ const { makeTree } = require("../utils/makeTree");
 
 exports.actionPost = async (req, res) => {
   try {
-    const nPost = new Post(req.body);
+    const { _id } = req.user;
+    const nPost = new Post({...req.body, poster:_id});
     await nPost.save();
     res.status(201).json({
       message: "Create a new post successfully.",
@@ -133,7 +134,7 @@ exports.getPosts = async (req, res) => {
     // let query = {};
     // if (view !== "all") query.delete = false;
     // const Posts = await Post.find(query).sort({ order: 1 });
-    const Posts = await Post.find({ delete: false }).sort({ _id: -1 });
+    const Posts = await Post.find({ delete: false }).populate('poster', 'email address fullName avatar').sort({ _id: -1 });
     // const result = makeTree(Posts);
     res.status(200).json({ Posts });
   } catch (err) {
@@ -147,7 +148,7 @@ exports.getPost = async (req, res) => {
     // let query = {};
     // if (view !== "all") query.delete = false;
     // const Posts = await Post.find(query).sort({ order: 1 });
-    const post = await Post.findById(id);
+    const post = await Post.findById(id).populate('poster', 'email address fullName avatar');
     // const result = makeTree(Posts);
     res.status(200).json({ post });
   } catch (err) {

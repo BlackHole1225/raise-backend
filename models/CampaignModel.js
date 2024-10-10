@@ -56,7 +56,7 @@ const CampaignSchema = new Schema(
     donated: [
       {
         donatorId: String,
-        amount: String,
+        amount: Number,
       },
     ],
     reactions: [reactionSchema],

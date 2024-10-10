@@ -6,7 +6,7 @@ const requireAuth = passport.authenticate("jwt", { session: false });
 
 router
   //Create campaign
-  .post("/create", CampaignController.createCampaign)
+  .post("/create", requireAuth,CampaignController.createCampaign)
   //Get all campaign
   .get("/", CampaignController.getAllCampaign)
   //Get all campaign

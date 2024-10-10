@@ -17,12 +17,13 @@ const { BN } = require('@coral-xyz/anchor')
 
 exports.createCampaign = async (req, res) => {
   try {
+    const { _id } = req.user;
     const newCampaign = new Campaign({
       title: req.body.title,
       file: req.body.file,
       countryId: req.body.countryId,
       categoryId: req.body.categoryId,
-      createrId: req.body.createrid,
+      createrId: _id,
       amount: req.body.amount,
       totalAmount: req.body.totalAmount,
       kyc: {
@@ -211,7 +212,7 @@ exports.endCampaign = async (req, res) => {
 
 exports.getAllCampaign = async (req, res) => {
   try {
-    const campaign = await Campaign.find({ delete: "false" });
+    const campaign = await Campaign.find({ delete: "false" }).populate('createrId', 'email address fullName avatar');
     res.status(200).json({ message: "Success", data: campaign });
   } catch (error) {
     console.log(error);
@@ -230,7 +231,7 @@ exports.getACampaign = async (req, res) => {
     let formattedContent = {};
 
     // Find campaign by ID
-    const campaign = await Campaign.find({ delete: "false", _id: req.params.id });
+    const campaign = await Campaign.find({ delete: "false", _id: req.params.id }).populate('createrId', 'email address fullName avatar');
     console.log(campaign);
     // Check if campaign exists
     if (campaign.length > 0) {
@@ -301,12 +302,12 @@ exports.setReactionCampaign = async (req, res) => {
     );
     if (existingReaction) {
       campaign.reactions.pull({ userId: _id, reactionType });
-       res.status(200).json({ message: 'Reaction deleted successfully', type:'pull' });
+      res.status(200).json({ message: 'Reaction deleted successfully', type: 'pull' });
 
       // return res.status(400).json({ message: 'User already reacted with this type' });
     } else {
       campaign.reactions.push({ userId: _id, reactionType });
-      res.status(200).json({ message: 'Reaction added successfully', type:'push' });
+      res.status(200).json({ message: 'Reaction added successfully', type: 'push' });
     }
     console.log(existingReaction);
 
