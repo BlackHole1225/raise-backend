@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const { model } = require("mongoose");
-
+const reactionSchema = new mongoose.Schema({
+  userId: String,       // ID of the user who reacted
+  reactionType: String, // Type of reaction (like, love, etc.)
+});
 const CampaignSchema = new Schema(
   {
     title: {
@@ -56,6 +59,7 @@ const CampaignSchema = new Schema(
         amount: String,
       },
     ],
+    reactions: [reactionSchema],
   },
   { timestamps: true },
 );

@@ -266,3 +266,55 @@ exports.getACampaign = async (req, res) => {
   }
 };
 
+exports.getReactionCampaign = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ message: 'campaign not found' });
+
+    const reactionCounts = campaign.reactions.reduce((acc, reaction) => {
+      acc[reaction.reactionType] = (acc[reaction.reactionType] || 0) + 1;
+      return acc;
+    }, {});
+
+    res.status(200).json({ reactions: reactionCounts });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
+exports.setReactionCampaign = async (req, res) => {
+  const { reactionType } = req.body;
+  const { _id } = req.user; // assuming req.user contains the logged-in user's ID
+
+  try {
+    // Validate if reactionType is present
+    if (!reactionType) {
+      return res.status(400).json({ message: 'Reaction type is required' });
+    }
+
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
+
+    // Check if the user has already reacted with the same type
+    const existingReaction = campaign.reactions.find(
+      (reaction) => (reaction.userId == _id && reaction.reactionType == reactionType)
+    );
+    if (existingReaction) {
+      campaign.reactions.pull({ userId: _id, reactionType });
+       res.status(200).json({ message: 'Reaction deleted successfully', type:'pull' });
+
+      // return res.status(400).json({ message: 'User already reacted with this type' });
+    } else {
+      campaign.reactions.push({ userId: _id, reactionType });
+      res.status(200).json({ message: 'Reaction added successfully', type:'push' });
+    }
+    console.log(existingReaction);
+
+    // Add the new reaction without removing any previous ones
+
+    await campaign.save();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
