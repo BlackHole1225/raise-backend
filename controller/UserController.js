@@ -53,7 +53,7 @@ exports.login = async (req, res) => {
           password: user.password,
           avatar: user.avatar,
         };
-        const token = jwt.sign(payload, config.secretOrKey, { expiresIn: 36000 });
+        const token = jwt.sign(payload, config.secretOrKey, { expiresIn: 3600 });
         res.json({
           success: "true",
           message: "Success",
@@ -92,7 +92,7 @@ exports.logout = async (req, res) => {
 };
 
 exports.tokenlogin = async (req, res) => {
-  await User.findbyId({ _id: req.user.id }).then((user) => {
+  await User.findById(req.user.id).then((user) => {
     if (!user) {
       return res.status(400).json({ message: "You are not registered" });
     }
@@ -106,7 +106,7 @@ exports.tokenlogin = async (req, res) => {
     jwt.sign(payload, config.secretOrKey, { expiresIn: 3600 }, (token) => {
       return res.json({
         success: "true",
-        token: "User" + token,
+        token:  token,
         user: user,
       });
     });
@@ -115,7 +115,7 @@ exports.tokenlogin = async (req, res) => {
 
 exports.getAUser = async (req, res) => {
   try {
-    await User.findOne({ email: req.body.email }).then((user) => {
+    await User.findOne({ email: req.user.email }).then((user) => {
       return res.status(200).json({
         message: "Get User successfully",
         user: user,
@@ -127,9 +127,9 @@ exports.getAUser = async (req, res) => {
 };
 
 exports.changePassword = async (req, res) => {
-  const { email, currentPassword, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ _id:req.user._id });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

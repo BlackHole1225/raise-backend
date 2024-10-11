@@ -115,28 +115,48 @@ exports.acceptKyc = async (req, res) => {
     console.log(error);
   }
 };
-
 exports.editCampaign = async (req, res) => {
+  const { _id, content, categoryId, countryId, amount, title, file, kyc } = req.body;
+  console.log(req.body);
+  // Validate the required fields
+  if (!_id || !content[0]._id || !content[0].text) {
+    return res.status(400).json({ message: 'Campaign ID, content ID, and text are required.' });
+  }
+
   try {
-    await Campaign.findOneAndUpdate(
+    // Update the campaign and specific content
+    const result = await Campaign.findOneAndUpdate(
+      { _id: _id, "content._id": content[0]._id },  // Match campaign and content IDs
       {
-        _id: mongoose.Types.ObjectId(req.body.campaignId),
-        "content._id": req.body.contentId,
-      },
-      {
-        title: req.body.title,
-        file: req.body.file,
         $set: {
-          "content.$.text": req.body.text,
+          title: title,
+          file: file,
+          kyc: {
+            file: req.body.kyc,
+            verify: "pending",
+          },
+          categoryId: categoryId,
+          countryId: countryId,
+          amount: amount,
+          "content.$.text": content[0].text,  // Update the text of the specified content
         },
       },
-    ),
-      res.status(200).json({ message: "Success" });
+      { new: true }  // Return the updated document
+    );
+
+    // Check if a document was found and updated
+    if (!result) {
+      return res.status(404).json({ message: 'Campaign or content not found.' });
+    }
+
+    res.status(200).json({ message: 'Success', updatedCampaign: result });
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    res.status(500).json({ message: 'Failed', error: error.message });
   }
 };
-exports.updateCampaign = async (req, res) => {
+
+exports.addUpdateCampaign = async (req, res) => {
   try {
     // Validate the required data
     if (!req.body.campaignId || !req.body.text) {
@@ -168,7 +188,42 @@ exports.updateCampaign = async (req, res) => {
     res.status(500).json({ message: "An error occurred while updating the campaign." });
   }
 };
+exports.editUpdateCampaign = async (req, res) => {
+  try {
+    const { campaignId, updateId, text } = req.body;
 
+    // Validate the required fields
+    if (!campaignId || !updateId || !text) {
+      return res.status(400).json({ message: 'Campaign ID, update ID, and text are required.' });
+    }
+
+    // Update the specific update inside the campaign's content array
+    const result = await Campaign.updateOne(
+      { _id: campaignId, "content._id": updateId },  // Match campaign and update ID
+      {
+        $set: {
+          "content.$.text": text,           // Update the text
+          "content.$.date": new Date(),     // Update the date to the current date
+        }
+      }
+    );
+
+    // Check if the update actually modified a document
+    if (result.nModified === 0) {
+      return res.status(404).json({ message: 'Campaign or update not found.' });
+    }
+
+    // Find the updated campaign to return the updated content
+    const updatedCampaign = await Campaign.findById(campaignId);
+    const updatedContent = updatedCampaign.content.id(updateId);
+
+    // Respond with the updated content
+    res.status(200).json({ message: 'Update edited successfully!', newContent: updatedContent });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while editing the campaign update.' });
+  }
+};
 
 exports.deleteUpdate = async (req, res) => {
   try {
@@ -194,8 +249,6 @@ exports.deleteUpdate = async (req, res) => {
     res.status(500).json({ message: "An error occurred while deleting the update." });
   }
 };
-
-
 exports.endCampaign = async (req, res) => {
   try {
     await Campaign.findOneAndUpdate(
@@ -209,7 +262,6 @@ exports.endCampaign = async (req, res) => {
     console.log(error);
   }
 };
-
 exports.getAllCampaign = async (req, res) => {
   try {
     const campaign = await Campaign.find({ delete: "false" }).populate('createrId', 'email address fullName avatar');
@@ -266,7 +318,6 @@ exports.getACampaign = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
-
 exports.getReactionCampaign = async (req, res) => {
   try {
     const campaign = await Campaign.findById(req.params.id);

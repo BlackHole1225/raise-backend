@@ -17,7 +17,8 @@ exports.actionPost = async (req, res) => {
 };
 exports.newComment = async (req, res) => {
   try {
-    const { accessTime, votes, reporterPhoto, reporterName, parentId, description } = req.body;
+    const { _id, avatar, fullName } = req.user;
+    const { votes,  parentId, description } = req.body;
 
     const post = await Post.findById(req.params.id);
     if (!post) {
@@ -26,10 +27,10 @@ exports.newComment = async (req, res) => {
 
     // Create the new comment
     const newComment = {
-      accessTime,
       votes,
-      reporterPhoto,
-      reporterName,
+      reporterPhoto: avatar,
+      reporterName: fullName,
+      reporterId: _id,
       parentId,
       description,
     };
@@ -141,6 +142,25 @@ exports.getPosts = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+exports.getPostsByUserId = async (req, res) => {
+  try { 
+    const { _id } = req.user;
+    const Posts = await Post.find({ poster: _id, delete: false }).populate('poster', 'email address fullName avatar').sort({ _id: -1 });
+    res.status(200).json({ Posts });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+exports.getCommentedPosts = async (req, res) => {
+  try {
+    const { _id } = req.user;
+    console.log(_id);
+    const Posts = await Post.find({ 'comments.reporterId': _id }).populate('poster', 'email address fullName avatar').sort({ _id: -1 });
+    res.status(200).json({ Posts });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
 exports.getPost = async (req, res) => {
   try {
     const { id } = req.params;

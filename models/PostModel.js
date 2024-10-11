@@ -3,10 +3,7 @@ const Schema = mongoose.Schema;
 const { model } = require("mongoose");
 
 const commentSchema = new Schema({
-  accessTime: {
-    type: Number,
-    required: true,
-  },
+ 
   votes: { type: Number, default: 0 },
   voters: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   reporterPhoto: {
@@ -17,8 +14,13 @@ const commentSchema = new Schema({
     type: String,
     required: true,
   },
+  reporterId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   parentId: {
-    type: String, // Used for threaded comments
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Post",
     default: null,
   },
   description: {

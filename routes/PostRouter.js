@@ -8,9 +8,11 @@ const requireAuth = passport.authenticate("jwt", { session: false });
 router
   //create Post
   .post("/create",requireAuth, PostController.actionPost)
-  .post("/:id/comment", PostController.newComment)
+  .post("/:id/comment", requireAuth, PostController.newComment)
   //Get All Post
   .get("/all", PostController.getPosts)
+  .get("/all/user", requireAuth, PostController.getPostsByUserId)
+  .get("/commented", requireAuth, PostController.getCommentedPosts)
   //Get All Post
   .get("/get/:id", PostController.getPost)
   //update Post

@@ -18,7 +18,8 @@ router
   //Delete update
   .delete("/update/:campaignId/:contentId", CampaignController.deleteUpdate)
   //Make update
-  .post("/update/", CampaignController.updateCampaign)
+  .post("/update/", CampaignController.addUpdateCampaign)
+  .put("/update/", CampaignController.editUpdateCampaign)
   .get("/:id",CampaignController.getACampaign)
   .get("/:id/reactions", CampaignController.getReactionCampaign)
   .post("/:id/reactions",requireAuth, CampaignController.setReactionCampaign)

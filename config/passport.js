@@ -16,7 +16,7 @@ const jwtLogin = new JwtStrategy(opts, async (payload, done) => {
     if (user) {
       return done(null, user);  // Successfully found the user
     } else {
-      return done(null, false, { message: "User not found" });  // No user found
+      return done(null, false, { message: "User not found", tokenExpired: true });  // No user found
     }
   } catch (err) {
     return done(err, false);  // Handle any errors during the database query
