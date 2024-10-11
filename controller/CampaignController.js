@@ -264,7 +264,7 @@ exports.endCampaign = async (req, res) => {
 };
 exports.getAllCampaign = async (req, res) => {
   try {
-    const campaign = await Campaign.find({ delete: "false" }).populate('createrId', 'email address fullName avatar');
+    const campaign = await Campaign.find({ delete: "false" }).populate('createrId', 'email address fullName avatar').sort({ createdAt: -1 });
     res.status(200).json({ message: "Success", data: campaign });
   } catch (error) {
     console.log(error);

@@ -143,7 +143,7 @@ exports.changePassword = async (req, res) => {
     
     const salt = await bcrypt.genSalt(10);
     const password = await bcrypt.hash(newPassword, salt);
-    await User.findOne({ email }).updateOne({
+    await User.findOne({ _id: req.user._id }).updateOne({
       password: password,
     });
     res.status(200).json({ message: "Success" });
