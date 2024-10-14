@@ -37,7 +37,15 @@ const UserSchema = new Schema(
     isVerify:{
       type:Boolean,
       default: false,
-    }
+    },
+    is_actived:{
+      type:Boolean,
+      default: false,
+    },
+    role: {
+      type: String,
+      default: "user",
+    },
   },
   {
     timestamps: true,

@@ -6,6 +6,10 @@ const CategorySchema = new Schema({
   name: {
     type: String,
   },
+  delete: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = mongoose.model("Category", CategorySchema);

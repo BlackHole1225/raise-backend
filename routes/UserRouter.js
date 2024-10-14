@@ -17,6 +17,12 @@ router
   .get("/tokenlogin", requireAuth, UserCtr.tokenlogin)
   //getUser information
   .get("/user/",requireAuth, UserCtr.getAUser)
+  //getUsers information
+  .get("/users/",requireAuth, UserCtr.getAllUser)
+  //getUsers information for search
+  .get("/users/search",requireAuth, UserCtr.searchUser)
+  //update activate status
+  .patch("/users/:id/activate",requireAuth, UserCtr.updateActivateStatus)
   //update profile
   .post("/updateUserProfile", UserCtr.updateProfile)
   //change Password

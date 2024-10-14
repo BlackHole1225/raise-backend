@@ -2,19 +2,16 @@ const Category = require("../models/CategoryModel");
 const _ = require("lodash");
 
 exports.createCategory = async (req, res) => {
-  const newCategory = new Category({
-    name: req.body.name,
+  try {
+    const newCategory = new Category({
+      name: req.body.name,
     delete: false,
   });
-  await newCategory.save((err) => {
-    if (err) {
-      return res.status(500).json({ message: err.message });
-    } else {
-      return res.status(200).json({
-        message: "Success!",
-      });
-    }
-  });
+  await newCategory.save();
+  return res.status(200).json({ message: "Success", category: newCategory });
+} catch (error) {
+  console.log(error);
+}
 };
 
 exports.getAllCategory = async (req, res) => {
@@ -28,11 +25,8 @@ exports.getAllCategory = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
   try {
-    await Category.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(req.body.categoryId) },
-      {
-        delete: true,
-      },
+    await Category.findByIdAndDelete(
+      { _id: req.body.categoryId },
     );
     res.status(200).json({ message: "Category is deleted." });
   } catch (error) {

@@ -252,12 +252,13 @@ exports.deleteUpdate = async (req, res) => {
 exports.endCampaign = async (req, res) => {
   try {
     await Campaign.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(req.body.campaignId) },
+      // { _id: mongoose.Types.ObjectId(req.body.campaignId) },
+      { _id: req.body.campaignId },
       {
         delete: true,
       },
     );
-    res.status(200).json({ message: "Campaign is deleted." });
+    res.status(200).json({ message: "Campaign is deleted." , status:true});
   } catch (error) {
     console.log(error);
   }
@@ -268,6 +269,35 @@ exports.getAllCampaign = async (req, res) => {
     res.status(200).json({ message: "Success", data: campaign });
   } catch (error) {
     console.log(error);
+  }
+};
+exports.searchCampaign = async (req, res) => {
+  console.log(req.query);
+  try {
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const perPage = parseInt(req.query['pagination[per_page]']) || 10; // Default to 10 items per page
+
+    // Calculate the total number of campaigns
+    const totalCampaigns = await Campaign.countDocuments();
+
+    // Fetch campaigns with pagination
+    const campaigns = await Campaign.find({delete: "false"})
+      .skip((page - 1) * perPage) // Skip the previous pages
+      .limit(perPage); // Limit to perPage campaigns
+
+    // Respond with campaigns and pagination info
+    res.json({
+      data: campaigns,
+      pagination: {
+        currentPage: page,
+        perPage: perPage,
+        totalPages: Math.ceil(totalCampaigns / perPage),
+        totalItems: totalCampaigns
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching campaigns:', err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 exports.getCampaignCategory = async (req, res) => {

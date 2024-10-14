@@ -60,6 +60,7 @@ exports.login = async (req, res) => {
           token: token,
           id: user.id,
           fullName: user.fullName,
+          avatar: user.avatar,
           email: user.email,
           file: user.file,
         });
@@ -106,7 +107,7 @@ exports.tokenlogin = async (req, res) => {
     jwt.sign(payload, config.secretOrKey, { expiresIn: 3600 }, (token) => {
       return res.json({
         success: "true",
-        token:  token,
+        token: token,
         user: user,
       });
     });
@@ -129,7 +130,7 @@ exports.getAUser = async (req, res) => {
 exports.changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   try {
-    const user = await User.findOne({ _id:req.user._id });
+    const user = await User.findOne({ _id: req.user._id });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -140,7 +141,7 @@ exports.changePassword = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
-    
+
     const salt = await bcrypt.genSalt(10);
     const password = await bcrypt.hash(newPassword, salt);
     await User.findOne({ _id: req.user._id }).updateOne({
@@ -177,14 +178,80 @@ exports.changePhoneNumber = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     console.log(req.body);
-    const user= await User.findOneAndUpdate({ email: req.body.email }, {
+    const user = await User.findOneAndUpdate({ email: req.body.email }, {
       file: req.body.file,
       fullName: req.body.fullName,
       address: req.body.address,
-      avatar:req.body.avatar
+      avatar: req.body.avatar
     });
     res.status(200).json({ message: "Success", user });
   } catch (error) {
     console.log(error);
+  }
+};
+exports.searchUser = async (req, res) => {
+  const { page = 1, pagination = {}, filters = {} } = req.query;
+  const perPage = parseInt(pagination.per_page) || 10;
+  const search = filters.search || '';
+
+  try {
+    // Filter users by search term (name or email)
+    const query = search
+      ? {
+        $or: [
+          { fullName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ]
+      }
+      : {};
+
+    // Get total number of users
+    const total = await User.countDocuments(query);
+
+    // Fetch paginated users
+    const users = await User.find(query)
+      .skip((page - 1) * perPage)
+      .limit(perPage);
+
+    // Prepare the response with pagination data
+    res.json({
+      data: users,
+      pagination: {
+        total: total,
+        per_page: perPage,
+        current_page: parseInt(page),
+        last_page: Math.ceil(total / perPage),
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+exports.getAllUser = async (req, res) => {
+  try {
+    const users = await User.find({});
+    const total = await User.countDocuments({});
+
+    res.status(200).json({
+      message: "Success", users, pagination: {
+        total: total,
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+exports.updateActivateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndUpdate(id, { is_actived: req.body.is_actived });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ message: 'User status updated successfully' });
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };

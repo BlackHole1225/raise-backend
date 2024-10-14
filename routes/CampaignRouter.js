@@ -10,11 +10,12 @@ router
   //Get all campaign
   .get("/", CampaignController.getAllCampaign)
   //Get all campaign
+  .get("/search", CampaignController.searchCampaign)
   .get("/category", CampaignController.getCampaignCategory)
   //Edit campaign
   .put("/edit/", CampaignController.editCampaign)
   //End campaign
-  .delete("/delete/", CampaignController.endCampaign)
+  .post("/delete/", CampaignController.endCampaign)
   //Delete update
   .delete("/update/:campaignId/:contentId", CampaignController.deleteUpdate)
   //Make update
