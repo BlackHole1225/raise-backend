@@ -47,13 +47,18 @@ const CampaignSchema = new Schema(
     totalAmount: {
       type: String,
     },
-    kyc: [
+    kyc: 
       {
-        file: Array,
-        verify: String,
+        file: {
+          type: String,
+          default: "",
+        },
+        verify: {
+          type: String,
+          default: "not yet",
+        },
       },
-    ],
-    donated: [
+       donated: [
       {
         donatorId: String,
         amount: Number,

@@ -6,6 +6,6 @@ router
   .post("/create", CountryController.createCountry)
   .get("/", CountryController.getAllCountry)
   .put("/edit/", CountryController.editCountry)
-  .delete("/delete/", CountryController.deleteCountry);
+  .post("/delete/", CountryController.deleteCountry);
 
 module.exports = router;

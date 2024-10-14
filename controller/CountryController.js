@@ -6,15 +6,12 @@ exports.createCountry = async (req, res) => {
     name: req.body.name,
     delete: false,
   });
-  await newCountry.save((err) => {
-    if (err) {
-      return res.status(500).json({ message: err.message });
-    } else {
-      return res.status(200).json({
-        message: "Success!",
-      });
-    }
-  });
+  try {
+    await newCountry.save();
+    return res.status(200).json({ message: "Success" });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 exports.getAllCountry = async (req, res) => {
@@ -28,12 +25,7 @@ exports.getAllCountry = async (req, res) => {
 
 exports.deleteCountry = async (req, res) => {
   try {
-    await Country.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(req.body.countryId) },
-      {
-        delete: true,
-      },
-    );
+    await Country.deleteOne({ _id: req.body.locationId });
     res.status(200).json({ message: "Country is deleted." });
   } catch (error) {
     console.log(error);

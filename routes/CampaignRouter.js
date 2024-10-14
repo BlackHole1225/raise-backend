@@ -11,6 +11,8 @@ router
   .get("/", CampaignController.getAllCampaign)
   //Get all campaign
   .get("/search", CampaignController.searchCampaign)
+  //Check kyc
+  .post("/kyc/:id", CampaignController.acceptKyc)
   .get("/category", CampaignController.getCampaignCategory)
   //Edit campaign
   .put("/edit/", CampaignController.editCampaign)

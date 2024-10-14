@@ -102,11 +102,15 @@ exports.acceptKyc = async (req, res) => {
   try {
     await Campaign.findOneAndUpdate(
       {
-        _id: mongoose.Types.ObjectId(req.body.campaignId),
+        _id:req.params.id,
       },
       {
         $set: {
-          "kyc.$.verify": Verified,
+          kyc: {
+            verify: req.body.state,
+            file: req.body.file,
+          },
+
         },
       },
     ),
