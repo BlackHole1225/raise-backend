@@ -269,7 +269,7 @@ exports.endCampaign = async (req, res) => {
 };
 exports.getAllCampaign = async (req, res) => {
   try {
-    const campaign = await Campaign.find({ delete: "false" }).populate('createrId', 'email address fullName avatar').sort({ createdAt: -1 });
+    const campaign = await Campaign.find({ delete: "false", 'kyc.verify': 'verified' }).populate('createrId', 'email address fullName avatar').sort({ createdAt: -1 });
     res.status(200).json({ message: "Success", data: campaign });
   } catch (error) {
     console.log(error);
@@ -285,7 +285,7 @@ exports.searchCampaign = async (req, res) => {
     const totalCampaigns = await Campaign.countDocuments();
 
     // Fetch campaigns with pagination
-    const campaigns = await Campaign.find({delete: "false"})
+    const campaigns = await Campaign.find({delete: "false"}).sort({createdAt: -1})
       .skip((page - 1) * perPage) // Skip the previous pages
       .limit(perPage); // Limit to perPage campaigns
 
