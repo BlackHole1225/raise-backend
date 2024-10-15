@@ -17,6 +17,8 @@ router
   .get("/tokenlogin", requireAuth, UserCtr.tokenlogin)
   //getUser information
   .get("/user/",requireAuth, UserCtr.getAUser)
+  //check verify
+  .get("/user/set-verify/:email", UserCtr.setVerify)
   //getUsers information
   .get("/users/",requireAuth, UserCtr.getAllUser)
   //getUsers information for search

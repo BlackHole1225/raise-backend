@@ -127,6 +127,15 @@ exports.getAUser = async (req, res) => {
   }
 };
 
+exports.setVerify = async (req, res) => {
+  const { email } = req.params;
+  const user = await User.findOneAndUpdate({ email }, { isVerify: true });
+  if (user) {
+    return res.status(200).json({ message: "User found", isVerify: user.isVerify });
+  } else {
+    return res.status(404).json({ message: "User not found" });
+  }
+};
 exports.changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   try {
