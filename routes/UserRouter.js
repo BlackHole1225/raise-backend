@@ -11,6 +11,8 @@ router
   .post("/register", UserCtr.register)
   //login
   .post("/login", UserCtr.login)
+  //google login
+  .post("/google-login", UserCtr.googleLogin)
   //logout
   .post("/logout", UserCtr.logout)
   //tokenlogin
@@ -25,6 +27,8 @@ router
   .get("/users/search",requireAuth, UserCtr.searchUser)
   //update activate status
   .patch("/users/:id/activate",requireAuth, UserCtr.updateActivateStatus)
+  //delete user
+  .delete("/users/:id",requireAuth, UserCtr.deleteUser)
   //update profile
   .post("/updateUserProfile", UserCtr.updateProfile)
   //change Password

@@ -1,6 +1,7 @@
 const User = require("../models/UserModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const axios = require("axios");
 const config = require("../config/config");
 const _ = require("lodash");
 
@@ -50,10 +51,9 @@ exports.login = async (req, res) => {
           id: user._id,
           fullName: user.fullName,
           email: user.email,
-          password: user.password,
           avatar: user.avatar,
         };
-        const token = jwt.sign(payload, config.secretOrKey, { expiresIn: 3600 });
+        const token = jwt.sign(payload, config.secretOrKey, { expiresIn: "1 day" });
         res.json({
           success: "true",
           message: "Success",
@@ -68,6 +68,35 @@ exports.login = async (req, res) => {
     },
   );
 };
+exports.googleLogin = async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    // Verify token with Google
+    const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
+    const { sub: googleId, email, name, picture } = response.data;
+
+    let user = await User.findOne({ googleId });
+    console.log(user);
+    if (!user) {
+      user = new User({ googleId, email, fullName: name, avatar: picture, isVerify: true });
+      await user.save();
+    }
+    const payload = {
+      id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      avatar: user.avatar,
+    }
+    const jwtToken = jwt.sign(payload, config.secretOrKey, { expiresIn: "1 day" });
+    res.json({ user, jwtToken });
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+
+}
 exports.logout = async (req, res) => {
   try {
     // Find the user by their email (You might use the token to identify the user in some systems)
@@ -101,15 +130,13 @@ exports.tokenlogin = async (req, res) => {
       id: user._id,
       fullName: user.fullName,
       email: user.email,
-      password: user.password,
       avatar: user.avatar,
     };
-    jwt.sign(payload, config.secretOrKey, { expiresIn: 3600 }, (token) => {
-      return res.json({
-        success: "true",
-        token: token,
-        user: user,
-      });
+    const jwtToken = jwt.sign(payload, config.secretOrKey, { expiresIn: "1 day" });
+    return res.json({
+      success: "true",
+      token: jwtToken,
+      user: user,
     });
   });
 };
@@ -183,7 +210,19 @@ exports.changePhoneNumber = async (req, res) => {
     console.log(error);
   }
 };
-
+exports.deleteUser = async (req, res) => {    
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 exports.updateProfile = async (req, res) => {
   try {
     console.log(req.body);
