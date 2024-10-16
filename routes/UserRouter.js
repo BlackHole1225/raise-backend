@@ -11,6 +11,8 @@ router
   .post("/register", UserCtr.register)
   //login
   .post("/login", UserCtr.login)
+  //admin login
+  .post("/admin/login", UserCtr.adminLogin)
   //google login
   .post("/google-login", UserCtr.googleLogin)
   //logout

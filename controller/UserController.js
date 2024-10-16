@@ -68,6 +68,47 @@ exports.login = async (req, res) => {
     },
   );
 };
+exports.adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+  if (email !== 'admin@raise.com' || password !== 'raise') {
+    return res.status(400).json({ message: "You are not admin." });
+  }
+  await User.findOne({ email: req.body.email, delete: false }).then(
+    async (user) => {
+      if (!user) {
+        return await res
+          .status(400)
+          .json({ message: "You are not registered." });
+      }
+      bcrypt.compare(req.body.password, user.password).then(async (matched) => {
+        if (!matched) {
+          return res.status(400).json({ message: "Password incorrect" });
+        }
+        await user.updateOne({
+          $set: { status: req.body.status },
+        });
+
+        const payload = {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          avatar: user.avatar,
+        };
+        const token = jwt.sign(payload, config.secretOrKey, { expiresIn: "1 day" });
+        res.json({
+          success: "true",
+          message: "Success",
+          token: token,
+          id: user.id,
+          fullName: user.fullName,
+          avatar: user.avatar,
+          email: user.email,
+          file: user.file,
+        });
+      });
+    },
+  );
+};
 exports.googleLogin = async (req, res) => {
   const { token } = req.body;
 
