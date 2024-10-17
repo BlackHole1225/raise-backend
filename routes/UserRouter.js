@@ -15,6 +15,8 @@ router
   .post("/admin/login", UserCtr.adminLogin)
   //google login
   .post("/google-login", UserCtr.googleLogin)
+  //add detail info
+  .post("/user/addDetailInfo", UserCtr.addDetailInfo)
   //logout
   .post("/logout", UserCtr.logout)
   //tokenlogin

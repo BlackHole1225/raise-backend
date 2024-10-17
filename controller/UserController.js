@@ -138,6 +138,15 @@ exports.googleLogin = async (req, res) => {
 
 
 }
+exports.addDetailInfo = async (req, res) => {
+  const { phoneNumber, address, email, avatar } = req.body;
+  const user = await User.findOneAndUpdate({ email: email }, { phoneNumber, address, avatar });
+  if (user) {
+    return res.status(200).json({ message: "User found", user });
+  } else {
+    return res.status(404).json({ message: "User not found" });
+  }
+}
 exports.logout = async (req, res) => {
   try {
     // Find the user by their email (You might use the token to identify the user in some systems)
