@@ -16,7 +16,6 @@ cloudinary.config({
   cloud_name: mainConfig.cloudinary.cloudName,
   api_key: mainConfig.cloudinary.apiKey,
   api_secret: mainConfig.cloudinary.apiSecret,
-  secure: true,
 });
 
 const getUploadedAttachment = (fileId, isPublic, ext) => {
@@ -97,66 +96,38 @@ exports.uploadFiles = function (req, res, next) {
     function test() {
       return pos < keys.length;
     },
-    async function (next) {
-      const file = files[keys[pos]];
-      const result = await cloudinary.uploader.upload(file.tempFilePath, {
-        public_id: uploadFile.name,
-        resource_type: "auto",
-        folder: "uploaded",
-        use_filename: true,
-        unique_filename: false,
-      })
-      successedFiles.push({ imgUrl: result.url, name: file.name.replace(/.jpeg|.jpg|.png|.webp/gi, "") });
-      // async.waterfall(
-      //   [
-      //     function (callback) {
-      //       // push to database
-      //       const mFile = new File({
-      //         name: file.name,
-      //         mime: file.mimetype,
-      //         md5: file.md5,
-      //         filesize: file.size,
-      //       });
-      //       mFile
-      //         .save()
-      //         .then((createdFile) => {
-      //           callback(null, createdFile);
-      //         })
-      //         .catch((err) => console.log(err));
-      //       // mFile.save((err1, created) => {
-      //       //   if (err1) {
-      //       //     callback(err1);
-      //       //   } else {
-      //       //     callback(null, created);
-      //       //   }
-      //       // });
-      //     },
-      //     function (createdFile, callback) {
-      //       upload.move_to_upload(file, createdFile, callback);
-      //     },
-      //   ],
-      //   function (err, result) {
-      //     if (err) {
-      //       console.log("file upload error", err, file.name);
-      //     } else {
-      //       successedFiles.push(result);
-      //     }
-      //     pos++;
-      //     next();
-      //   },
-      // );
-    },
-    function (err) {
-      // done
-      if (err) {
-        return next(err);
-      } else {
+    async function () {
+      const newfile = files[keys[pos]];
+      try {
+        const result = await cloudinary.uploader.upload(newfile.tempFilePath, {
+          public_id: newfile.name,
+          resource_type: "auto",
+          folder: "uploaded",
+          use_filename: true,
+          unique_filename: false,
+        })
+        const file = new File({
+          imgUrl: result.url,
+          name: newfile.name.replace(/.jpeg|.jpg|.png|.webp/gi, ""),
+        });
+        const data = await file.save();
+        console.log('file', data);
+
+        successedFiles.push({ _id: data._id, imgUrl: result.url, name: file.name.replace(/.jpeg|.jpg|.png|.webp/gi, "") });
         return res.status(200).json({
           type: "success",
           uploaded: successedFiles,
           message: "Uploaded successfully!",
         });
+
+      } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+          type: "error",
+          message: err,
+        });
       }
+
     },
   );
 };

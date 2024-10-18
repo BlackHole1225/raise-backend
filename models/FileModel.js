@@ -17,6 +17,9 @@ const FileSchema = new Schema(
     filesize: {
       type: Number,
     },
+    imgUrl: {
+      type: String,
+    },
     isPublic: {
       type: Boolean,
       default: true,
