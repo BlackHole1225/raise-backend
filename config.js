@@ -13,17 +13,6 @@ module.exports = {
   },
   serviceUrl:
     process.env.REACT_APP_SERVICE_URL || "https://raise-backend-new.vercel.app/api",
-  cloudinary: {
-    cloudName: 'dz01hd8xz',
-    apiKey: '357492731237723',
-    apiSecret: 'LS7QXpmPcStdHv9XBLJRS0pqauE',
-  },
-  imgur: {
-    clientId: 'your_imgur_client_id',
-  },
-  googleCloud: {
-    projectId: 'your_google_cloud_project_id',
-    keyFilename: 'path/to/your-service-account-key.json',
-  },
+
 
 };
