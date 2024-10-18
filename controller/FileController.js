@@ -83,10 +83,10 @@ exports.uploadFiles = function (req, res, next) {
   let keys = Object.keys(files);
 
   // Ensure upload directory exists
-  const uploadDir = path.join(config.upload, config.upload_attachment);
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
+  // const uploadDir = path.join(config.upload, config.upload_attachment);
+  // if (!fs.existsSync(uploadDir)) {
+  //   fs.mkdirSync(uploadDir, { recursive: true });
+  // }
 
 
   // async call
