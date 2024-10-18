@@ -1,16 +1,32 @@
 const async = require("async");
 const fs=require("fs");
 const contentDisposition = require("content-disposition");
-
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const File = require("../models/FileModel");
 const upload = require("../utils/upload");
 const validation = require("../utils/validation.js");
 const lang = require("../utils/_lang/lang");
-
+const config = require("../config");
 const path = require("path");
 const config = require("../config/file");
 
+cloudinary.config({
+  cloud_name: config.cloudinary.cloudName, 
+  api_key: config.cloudinary.apiKey, 
+  api_secret: config.cloudinary.apiSecret
+});
 
+// Set up Cloudinary storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'uploads',
+    allowed_formats: ['jpg', 'png'],
+  },
+});
+
+const upload = multer({ storage: storage });
 const getUploadedAttachment = (fileId, isPublic, ext) => {
   return new Promise((resolve, reject) => {
     upload.get_uploaded_attachment(fileId, isPublic, ext, (err, data) => {
@@ -58,89 +74,134 @@ exports.downloadFile = async function (req, res, next) {
 };
 
 
+exports.uploadFiles = async function (req, res, next) {
+  try {
+    let files = req.files;
+    if (!files || files.length === 0) {
+      return res.status(200).json({
+        success: true,
+        files: [],
+      });
+    }
 
-exports.uploadFiles = function (req, res, next) {
-  let files = req.files;
-  if (files?.message) {
-    files = files.message;
-    if (typeof files === "object" && !files.length) files = [files];
-  }
+    const successedFiles = [];
 
-  if (!files) {
+    for (const file of files) {
+      // Upload file to Cloudinary
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: 'uploads',
+        resource_type: 'auto',
+      });
+
+      // Create and save file document in database
+      const newFile = new File({
+        name: file.originalname,
+        mime: file.mimetype,
+        filesize: file.size,
+        cloudinaryId: result.public_id,
+        cloudinaryUrl: result.secure_url,
+      });
+
+      const savedFile = await newFile.save();
+      successedFiles.push(savedFile);
+    }
+
     return res.status(200).json({
-      success: true,
-      files: [],
+      type: "success",
+      uploaded: successedFiles,
+      message: "Uploaded successfully!",
+    });
+  } catch (error) {
+    console.error("File upload error:", error);
+    return res.status(500).json({
+      type: "error",
+      message: "File upload failed",
     });
   }
-
-  let keys = Object.keys(files);
-
-  // Ensure upload directory exists
-  const uploadDir = path.join(config.upload, config.upload_attachment);
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-
-  // async call
-  let pos = 0;
-  let successedFiles = [];
-  async.whilst(
-    function test() {
-      return pos < keys.length;
-    },
-    function (next) {
-      const file = files[keys[pos]];
-      async.waterfall(
-        [
-          function (callback) {
-            // push to database
-            const mFile = new File({
-              name: file.name,
-              mime: file.mimetype,
-              md5: file.md5,
-              filesize: file.size,
-            });
-            mFile
-              .save()
-              .then((createdFile) => {
-                callback(null, createdFile);
-              })
-              .catch((err) => console.log(err));
-            // mFile.save((err1, created) => {
-            //   if (err1) {
-            //     callback(err1);
-            //   } else {
-            //     callback(null, created);
-            //   }
-            // });
-          },
-          function (createdFile, callback) {
-            upload.move_to_upload(file, createdFile, callback);
-          },
-        ],
-        function (err, result) {
-          if (err) {
-            console.log("file upload error", err, file.name);
-          } else {
-            successedFiles.push(result);
-          }
-          pos++;
-          next();
-        },
-      );
-    },
-    function (err) {
-      // done
-      if (err) {
-        return next(err);
-      } else {
-        return res.status(200).json({
-          type: "success",
-          uploaded: successedFiles,
-          message: "Uploaded successfully!",
-        });
-      }
-    },
-  );
 };
+
+// exports.uploadFiles = function (req, res, next) {
+//   let files = req.files;
+//   if (files?.message) {
+//     files = files.message;
+//     if (typeof files === "object" && !files.length) files = [files];
+//   }
+
+//   if (!files) {
+//     return res.status(200).json({
+//       success: true,
+//       files: [],
+//     });
+//   }
+
+//   let keys = Object.keys(files);
+
+//   // Ensure upload directory exists
+//   const uploadDir = path.join(config.upload, config.upload_attachment);
+//   if (!fs.existsSync(uploadDir)) {
+//     fs.mkdirSync(uploadDir, { recursive: true });
+//   }
+
+
+//   // async call
+//   let pos = 0;
+//   let successedFiles = [];
+//   async.whilst(
+//     function test() {
+//       return pos < keys.length;
+//     },
+//     function (next) {
+//       const file = files[keys[pos]];
+//       async.waterfall(
+//         [
+//           function (callback) {
+//             // push to database
+//             const mFile = new File({
+//               name: file.name,
+//               mime: file.mimetype,
+//               md5: file.md5,
+//               filesize: file.size,
+//             });
+//             mFile
+//               .save()
+//               .then((createdFile) => {
+//                 callback(null, createdFile);
+//               })
+//               .catch((err) => console.log(err));
+//             // mFile.save((err1, created) => {
+//             //   if (err1) {
+//             //     callback(err1);
+//             //   } else {
+//             //     callback(null, created);
+//             //   }
+//             // });
+//           },
+//           function (createdFile, callback) {
+//             upload.move_to_upload(file, createdFile, callback);
+//           },
+//         ],
+//         function (err, result) {
+//           if (err) {
+//             console.log("file upload error", err, file.name);
+//           } else {
+//             successedFiles.push(result);
+//           }
+//           pos++;
+//           next();
+//         },
+//       );
+//     },
+//     function (err) {
+//       // done
+//       if (err) {
+//         return next(err);
+//       } else {
+//         return res.status(200).json({
+//           type: "success",
+//           uploaded: successedFiles,
+//           message: "Uploaded successfully!",
+//         });
+//       }
+//     },
+//   );
+// };
