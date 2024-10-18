@@ -117,7 +117,7 @@ exports.googleLogin = async (req, res) => {
     const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
     const { sub: googleId, email, name, picture } = response.data;
 
-    let user = await User.findOne({ googleId });
+    let user = await User.findOne({ email });
     console.log(user);
     if (!user) {
       user = new User({ googleId, email, fullName: name, avatar: picture, isVerify: true });
