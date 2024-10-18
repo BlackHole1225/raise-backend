@@ -5,7 +5,7 @@ const cors = require("cors");
 const passport = require("passport");
 const fileUpload = require("express-fileupload");
 const env = require("dotenv");
-
+const config = require("./config");
 env.config(); // Load environment variables from .env file
 
 const UserRouter = require("./routes/UserRouter");
@@ -39,8 +39,8 @@ app.use(fileUpload({
 // );
 
 // Connect to MongoDB
-console.log(process.env.MONGO_URI)
-const db = process.env.MONGO_URI;
+// console.log(process.env.MONGO_URI)
+const db = config.db_url;
 mongoose
   .connect(db, {
     // useNewUrlParser: true, // from 6 or higher version of mongoose
