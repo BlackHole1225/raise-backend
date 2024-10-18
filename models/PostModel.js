@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 const { model } = require("mongoose");
 
 const commentSchema = new Schema({
- 
+
   votes: { type: Number, default: 0 },
   voters: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   reporterPhoto: {
@@ -55,8 +55,7 @@ const PostSchema = new Schema(
       ref: "Category",
     },
     file: {
-      type: Schema.Types.ObjectId,
-      ref: "File",
+      type: String
     },
     poster: {
       type: Schema.Types.ObjectId,
